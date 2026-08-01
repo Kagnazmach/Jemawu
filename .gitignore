@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.firebase/
+.vercel/
+firestore-debug.log
+ui-debug.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

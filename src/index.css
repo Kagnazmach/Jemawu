@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-pitch: #0f3d2e;
+  --color-gold: #f4b41b;
+  --color-cream: #fdf6e3;
+  --color-red: #ce1126;
+  --color-slate: #1e293b;
+  --color-muted: #94a3b8;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-slate);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.amharic {
+  font-family: "Noto Sans Ethiopic", "Inter", system-ui, sans-serif;
+}
+
+.heading-xl {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Thin tri-color accent bar echoing the Ethiopian flag, used sparingly */
+.flag-accent {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-pitch) 0%,
+    var(--color-pitch) 33%,
+    var(--color-gold) 33%,
+    var(--color-gold) 66%,
+    var(--color-red) 66%,
+    var(--color-red) 100%
+  );
+}
+
+.card {
+  background-color: var(--color-cream);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 24px -8px rgba(15, 61, 46, 0.18);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-muted);
+  border-radius: 999px;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
