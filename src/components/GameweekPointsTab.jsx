@@ -100,7 +100,7 @@ export default function GameweekPointsTab({ league, admin, leagueApi }) {
             </tr>
           </thead>
           <tbody>
-            {league.managers.map((m) => {
+            {(Array.isArray(league?.managers) ? league.managers : []).map((m) => {
               const s = gwScores[m.id];
               return (
                 <tr key={m.id} className="border-b border-slate/5 last:border-0">

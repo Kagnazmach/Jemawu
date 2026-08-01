@@ -46,7 +46,7 @@ export default function SquadsTab({ league, admin, leagueApi }) {
         <EmptyState message="No managers yet. Sign in as administrator and create your first manager." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {league.managers.map((m) => {
+          {(Array.isArray(league?.managers) ? league.managers : []).map((m) => {
             const value = squadValue(m.squad || []);
             const remaining = remainingBudget(m.squad || []);
             const isOpen = expanded === m.id;

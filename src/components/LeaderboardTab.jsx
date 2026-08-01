@@ -79,7 +79,7 @@ export default function LeaderboardTab({ league }) {
             </tr>
           </thead>
           <tbody>
-            {standings.map((s, i) => {
+            {(Array.isArray(standings) ? standings : []).map((s, i) => {
               const rank = i + 1;
               const prior = prevRank(s.managerId);
               let change = null;

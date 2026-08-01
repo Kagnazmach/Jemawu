@@ -32,7 +32,7 @@ function AwardEditor({ awardKey, label, multi, value, managers, onSave, onClose 
         <SectionHeading>{label}</SectionHeading>
         <div className="space-y-3">
           <Select value={managerId} onChange={(e) => setManagerId(e.target.value)}>
-            {managers.map((m) => (
+            {(Array.isArray(managers) ? managers : []).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>

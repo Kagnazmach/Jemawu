@@ -5,8 +5,8 @@ export default function TransfersTab({ league, admin, leagueApi }) {
 
   try {
     const safeLeague = league || {};
-    const safeManagers = safeLeague.managers || [];
-    const safeTransfers = safeLeague.transfers || [];
+    const safeManagers = Array.isArray(safeLeague.managers) ? safeLeague.managers : [];
+    const safeTransfers = Array.isArray(safeLeague.transfers) ? safeLeague.transfers : [];
     const safeAdmin = admin || {};
 
     return (
@@ -15,10 +15,9 @@ export default function TransfersTab({ league, admin, leagueApi }) {
         
         <div style={{ background: '#f0f0f0', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: 12 }}>
           <p><strong>Debug Info:</strong></p>
-          <p>Managers: {safeManagers.length}</p>
-          <p>Transfers: {safeTransfers.length}</p>
+          <p>Managers: {safeManagers.length} (type: {typeof safeLeague.managers})</p>
+          <p>Transfers: {safeTransfers.length} (type: {typeof safeLeague.transfers})</p>
           <p>Admin: {safeAdmin.isAdmin ? 'Yes' : 'No'}</p>
-          <p>leagueApi exists: {leagueApi ? 'Yes' : 'No'}</p>
         </div>
 
         {safeTransfers.length === 0 ? (
