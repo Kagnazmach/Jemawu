@@ -79,10 +79,10 @@ export default function TransfersTab({ league, admin, leagueApi }) {
   const [editing, setEditing] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const managerName = (id) => league.managers.find((m) => m.id === id)?.name || "Unknown manager";
+  const managerName = (id) => (league.managers || []).find((m) => m.id === id)?.name || "Unknown manager";
 
   const sorted = useMemo(
-    () => [...league.transfers].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+    () => [...(league.transfers || [])].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
     [league.transfers]
   );
 
