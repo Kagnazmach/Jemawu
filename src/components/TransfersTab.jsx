@@ -1,199 +1,44 @@
-// src/components/TransfersTab.jsx
-import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Card, SectionHeading, EmptyState, PrimaryButton, SecondaryButton, DangerButton, Select, Input } from "./Atoms.jsx";
-import { PLAYERS, TOTAL_GAMEWEEKS } from "../lib/constants.js";
-import { getPlayerById } from "../lib/model.js";
-
-function TransferForm({ managers, transfer, onSave, onCancel }) {
-  const [managerId, setManagerId] = useState(transfer?.managerId || managers[0]?.id || "");
-  const [playerOut, setPlayerOut] = useState(transfer?.playerOut || "");
-  const [playerIn, setPlayerIn] = useState(transfer?.playerIn || "");
-  const [gw, setGw] = useState(transfer?.gw || 1);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!managerId || !playerOut || !playerIn) return;
-    onSave({ managerId, playerOut: Number(playerOut), playerIn: Number(playerIn), gw: Number(gw) });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <SectionHeading>{transfer ? "Edit transfer" : "Record transfer"}</SectionHeading>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="text-sm font-medium text-slate/70">Manager</label>
-            <Select value={managerId} onChange={(e) => setManagerId(e.target.value)}>
-              {managers.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-medium text-slate/70">Player out</label>
-              <Select value={playerOut} onChange={(e) => setPlayerOut(e.target.value)}>
-                <option value="">Select...</option>
-                {PLAYERS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate/70">Player in</label>
-              <Select value={playerIn} onChange={(e) => setPlayerIn(e.target.value)}>
-                <option value="">Select...</option>
-                {PLAYERS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate/70">Gameweek</label>
-            <Input type="number" min={1} max={TOTAL_GAMEWEEKS} value={gw} onChange={(e) => setGw(e.target.value)} />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <PrimaryButton type="submit" className="flex-1">
-              Save
-            </PrimaryButton>
-            <SecondaryButton type="button" onClick={onCancel}>
-              Cancel
-            </SecondaryButton>
-          </div>
-        </form>
-      </Card>
-    </div>
-  );
-}
+import { useState } from "react";
 
 export default function TransfersTab({ league, admin, leagueApi }) {
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError] = useState(null);
 
-  const managerName = (id) => (league.managers || []).find((m) => m.id === id)?.name || "Unknown manager";
+  try {
+    const safeLeague = league || {};
+    const safeManagers = safeLeague.managers || [];
+    const safeTransfers = safeLeague.transfers || [];
+    const safeAdmin = admin || {};
 
-  const sorted = useMemo(
-    () => [...(league.transfers || [])].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
-    [league.transfers]
-  );
+    return (
+      <div style={{ padding: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Transfers</h2>
+        
+        <div style={{ background: '#f0f0f0', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: 12 }}>
+          <p><strong>Debug Info:</strong></p>
+          <p>Managers: {safeManagers.length}</p>
+          <p>Transfers: {safeTransfers.length}</p>
+          <p>Admin: {safeAdmin.isAdmin ? 'Yes' : 'No'}</p>
+          <p>leagueApi exists: {leagueApi ? 'Yes' : 'No'}</p>
+        </div>
 
-  const handleSave = (payload) => {
-    if (editing) {
-      leagueApi.updateTransfer(editing.id, payload);
-    } else {
-      leagueApi.addTransfer(payload);
-    }
-    setFormOpen(false);
-    setEditing(null);
-  };
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <SectionHeading>Transfers</SectionHeading>
-        {admin.isAdmin && league.managers.length > 0 && (
-          <PrimaryButton
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5"
-          >
-            <Plus size={16} /> Record transfer
-          </PrimaryButton>
+        {safeTransfers.length === 0 ? (
+          <p style={{ color: '#666' }}>No transfers recorded yet.</p>
+        ) : (
+          <ul>
+            {safeTransfers.map((t, i) => (
+              <li key={t.id || i}>GW{t.gw}: {t.managerId} — out {t.playerOut}, in {t.playerIn}</li>
+            ))}
+          </ul>
         )}
       </div>
-
-      {sorted.length === 0 ? (
-        <EmptyState message="No transfers recorded yet." />
-      ) : (
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate/10 text-left text-slate/60 uppercase text-xs tracking-wide">
-                <th className="px-4 py-3">Manager</th>
-                <th className="px-4 py-3">Out</th>
-                <th className="px-4 py-3">In</th>
-                <th className="px-4 py-3">GW</th>
-                <th className="px-4 py-3">When</th>
-                {admin.isAdmin && <th className="px-4 py-3" />}
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((t) => (
-                <tr key={t.id} className="border-b border-slate/5 last:border-0">
-                  <td className="px-4 py-3 font-medium">{managerName(t.managerId)}</td>
-                  <td className="px-4 py-3 text-red">{getPlayerById(t.playerOut)?.name || "—"}</td>
-                  <td className="px-4 py-3 text-pitch">{getPlayerById(t.playerIn)?.name || "—"}</td>
-                  <td className="px-4 py-3">{t.gw}</td>
-                  <td className="px-4 py-3 text-slate/50">{new Date(t.timestamp).toLocaleDateString()}</td>
-                  {admin.isAdmin && (
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1.5 justify-end">
-                        <button
-                          onClick={() => {
-                            setEditing(t);
-                            setFormOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-pitch/10 text-pitch"
-                          aria-label="Edit transfer"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete(t)}
-                          className="p-1.5 rounded-lg hover:bg-red/10 text-red"
-                          aria-label="Delete transfer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
-
-      {formOpen && (
-        <TransferForm
-          managers={league.managers}
-          transfer={editing}
-          onSave={handleSave}
-          onCancel={() => setFormOpen(false)}
-        />
-      )}
-
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 bg-slate/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="w-full max-w-sm">
-            <p className="mb-4">This transfer record will be permanently deleted. Continue?</p>
-            <div className="flex gap-2">
-              <DangerButton
-                className="flex-1"
-                onClick={() => {
-                  leagueApi.deleteTransfer(confirmDelete.id);
-                  setConfirmDelete(null);
-                }}
-              >
-                Delete
-              </DangerButton>
-              <SecondaryButton onClick={() => setConfirmDelete(null)}>Cancel</SecondaryButton>
-            </div>
-          </Card>
-        </div>
-      )}
-    </div>
-  );
+    );
+  } catch (err) {
+    return (
+      <div style={{ padding: 20, color: 'red' }}>
+        <h2>Error in TransfersTab</h2>
+        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>{err.message}</pre>
+        <pre style={{ whiteSpace: 'pre-wrap', fontSize: 10, marginTop: 10 }}>{err.stack}</pre>
+      </div>
+    );
+  }
 }
