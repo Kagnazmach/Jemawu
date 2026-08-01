@@ -6,19 +6,19 @@
 //
 // IMPORTANT: `firebaseConfigured` is a BOOLEAN, never a function.
 // Correct:   if (firebaseConfigured) { ... }
-// Incorrect: if (firebaseConfigured()) { ... }   <-- never do this
+// Incorrect: if (firebaseConfigured()) { ... } <-- never do this
 
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_PROJECT.firebaseapp.com",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "REPLACE_WITH_SENDER_ID",
-  appId: "REPLACE_WITH_APP_ID",
+  apiKey: "AIzaSyDayt_xN-qkD1ZNB6uJ379y4p5Jpas5gCA",
+  authDomain: "jemawu-app.firebaseapp.com",
+  projectId: "jemawu-app",
+  storageBucket: "jemawu-app.firebasestorage.app",
+  messagingSenderId: "586091330370",
+  appId: "1:586091330370:web:6ef5b4299f48a7466ee6db",
 };
 
 // Detect whether the placeholders above have actually been replaced.
