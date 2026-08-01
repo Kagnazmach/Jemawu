@@ -1,14 +1,4 @@
 // src/hooks/useLeagueData.js
-//
-// Single source of truth for the league document at leagues/jfpl.
-// When Firebase is configured, subscribes to a live Firestore snapshot
-// listener so changes propagate instantly to every connected device.
-// When Firebase is not configured, falls back to a localStorage-backed
-// store so the app is still fully usable for local development/demo.
-//
-// Exposes: data, loading, saving, saveStatus, and a set of mutation
-// functions used by the admin screens.
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   doc,
@@ -24,7 +14,7 @@ const LEAGUE_DOC_PATH = ["leagues", "jfpl"];
 const emptyLeague = () => ({
   managers: [],
   transfers: [],
-  gwScores: {}, // { [gw]: { [managerId]: { points, hits, adjusted } } }
+  gwScores: {},
   awards: {
     manager_of_the_month: [],
     highest_gw_score: [],
@@ -38,12 +28,33 @@ const emptyLeague = () => ({
   lastUpdated: null,
 });
 
+const normalizeLeague = (raw) => {
+  if (!raw) return emptyLeague();
+  return {
+    ...raw,
+    managers: Array.isArray(raw.managers) ? raw.managers : [],
+    transfers: Array.isArray(raw.transfers) ? raw.transfers : [],
+    awards: {
+      manager_of_the_month: Array.isArray(raw.awards?.manager_of_the_month) ? raw.awards.manager_of_the_month : [],
+      highest_gw_score: Array.isArray(raw.awards?.highest_gw_score) ? raw.awards.highest_gw_score : [],
+      best_transfer: Array.isArray(raw.awards?.best_transfer) ? raw.awards.best_transfer : [],
+      most_improved: Array.isArray(raw.awards?.most_improved) ? raw.awards.most_improved : [],
+      season_champion: raw.awards?.season_champion || null,
+      hall_of_fame: Array.isArray(raw.awards?.hall_of_fame) ? raw.awards.hall_of_fame : [],
+      custom: Array.isArray(raw.awards?.custom) ? raw.awards.custom : [],
+    },
+    gwScores: typeof raw.gwScores === 'object' && raw.gwScores !== null ? raw.gwScores : {},
+    currentGameweek: raw.currentGameweek || 1,
+    lastUpdated: raw.lastUpdated || null,
+  };
+};
+
 function loadLocal() {
   try {
     const raw = window.localStorage.getItem(LOCAL_KEY);
     if (!raw) return emptyLeague();
     const parsed = JSON.parse(raw);
-    return { ...emptyLeague(), ...parsed };
+    return normalizeLeague(parsed);
   } catch {
     return emptyLeague();
   }
@@ -56,7 +67,7 @@ function saveLocal(data) {
 export function useLeagueData() {
   const [data, setData] = useState(firebaseConfigured ? null : loadLocal());
   const [loading, setLoading] = useState(firebaseConfigured);
-  const [saveStatus, setSaveStatus] = useState("idle"); // idle | saving | saved | error
+  const [saveStatus, setSaveStatus] = useState("idle");
   const saveTimeout = useRef(null);
 
   useEffect(() => {
@@ -66,7 +77,7 @@ export function useLeagueData() {
       ref,
       (snap) => {
         if (snap.exists()) {
-          setData({ ...emptyLeague(), ...snap.data() });
+          setData(normalizeLeague(snap.data()));
         } else {
           setData(emptyLeague());
         }
@@ -86,19 +97,18 @@ export function useLeagueData() {
     saveTimeout.current = setTimeout(() => setSaveStatus("idle"), 1800);
   }, []);
 
-  // Persist a full or partial update to the league document.
   const persist = useCallback(
     async (updater) => {
       setSaveStatus("saving");
       try {
         if (firebaseConfigured) {
           const ref = doc(db, ...LEAGUE_DOC_PATH);
-          const next = updater(data || emptyLeague());
+          const base = normalizeLeague(data || emptyLeague());
+          const next = updater(base);
           await setDoc(ref, { ...next, lastUpdated: serverTimestamp() }, { merge: false });
-          // onSnapshot will update local state.
         } else {
           setData((prev) => {
-            const base = prev || emptyLeague();
+            const base = normalizeLeague(prev || emptyLeague());
             const next = { ...updater(base), lastUpdated: new Date().toISOString() };
             saveLocal(next);
             return next;
@@ -113,7 +123,6 @@ export function useLeagueData() {
     [data, flashSaved]
   );
 
-  // ---- Managers ----
   const addManager = useCallback(
     (manager) =>
       persist((league) => ({
@@ -141,7 +150,6 @@ export function useLeagueData() {
     [persist]
   );
 
-  // ---- Transfers ----
   const addTransfer = useCallback(
     (transfer) =>
       persist((league) => ({
@@ -172,7 +180,6 @@ export function useLeagueData() {
     [persist]
   );
 
-  // ---- Gameweek scores ----
   const setGWScore = useCallback(
     (gw, managerId, scoreData) =>
       persist((league) => ({
@@ -193,7 +200,6 @@ export function useLeagueData() {
     [persist]
   );
 
-  // ---- Awards ----
   const updateAwards = useCallback(
     (patch) =>
       persist((league) => ({
